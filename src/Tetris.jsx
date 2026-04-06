@@ -107,7 +107,13 @@ export default function Tetris() {
   // Handle keyboard input
   useEffect(() => {
     const handleKeyPress = (e) => {
-      if (gameOver) return;
+      if (gameOver) {
+        if (e.key === ' ') {
+          e.preventDefault();
+          handleReset();
+        }
+        return;
+      }
 
       if (e.key === 'ArrowLeft') {
         e.preventDefault();
@@ -186,7 +192,7 @@ export default function Tetris() {
   }, [board, currentShapeData, currentPiece, gameOver, nextPiece]);
 
   const handleRotate = () => {
-    if (gameOver || isPaused) return;
+    if (gameOver) return;
     
     setCurrentPiece((prev) => {
       const newRotation = (prev.rotation + 1) % 4;
@@ -297,52 +303,15 @@ export default function Tetris() {
                 <p className="score-value">{score}</p>
               </div>
 
-              <Card className="next-piece-card p-3" style={{ marginTop: '20px' }}>
-                <h3 style={{ marginTop: 0 }}>NEXT</h3>
-                <div
-                  style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(4, 20px)',
-                    gap: '1px',
-                    justifyContent: 'center',
-                    marginTop: '10px',
-                  }}
-                >
-                  {renderNextPiece()}
-                </div>
-              </Card>
-
-              <div className="controls" style={{ marginTop: '30px' }}>
-                <button
-                  className="tetris-button"
-                  onClick={handleRotate}
-                  style={{ marginBottom: '10px' }}
-                >
-                  ROTATE
-                </button>
-                <button className="tetris-button" onClick={handleReset}>
-                  NEW GAME
-                </button>
-              </div>
-
               {gameOver && (
                 <div className="game-over-message">
-                  <p>GAME OVER!</p>
-                  <p>Final Score: {score}</p>
+                  <p> GAME OVER! </p>
                 </div>
               )}
+
             </Card>
           </div>
         </div>
-
-        {/* <div className="controls-info p-3" style={{ marginTop: '30px' }}>
-          <h3>CONTROLS</h3>
-          <p>← → Arrow Keys: Move</p>
-          <p>↑ Arrow Key: Rotate</p>
-          <p>↓ Arrow Key: Move Down One Line</p>
-          <p>SPACE: Drop Straight Down</p>
-        </div> */}
-
       </Card>
     </div>
   );
