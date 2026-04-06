@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef } from 'react';
-import { Card } from 'pixel-retroui';
 import {
   BOARD_WIDTH,
   BOARD_HEIGHT,
@@ -17,8 +16,6 @@ import {
   calculateScore,
 } from './gameUtils';
 import './Tetris.css';
-
-import { Button, Popup } from 'pixel-retroui';
 
 export default function Tetris() {
   const [board, setBoard] = useState(createEmptyBoard());
@@ -265,6 +262,7 @@ export default function Tetris() {
             <div style={gridStyle}>{renderBoard()}</div>
           </div>
         </div>
+        <p className='tetris-title'> {score} </p>
     </div>
   );
 }
