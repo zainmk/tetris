@@ -2,20 +2,13 @@
   width: 100vw;
   height: 100vh;
   display: flex;
+  flexDirection: column;
   justify-content: center;
   align-items: center;
   background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
   font-family: 'Arial', sans-serif;
   padding: 20px;
   box-sizing: border-box;
-}
-
-.tetris-wrapper {
-  background-color: #0f3460 !important;
-  border: 4px solid #00ff00 !important;
-  box-shadow: 0 0 20px rgba(0, 255, 0, 0.5), inset 0 0 30px rgba(0, 0, 0, 0.5);
-  max-width: 800px;
-  width: 100%;
 }
 
 .tetris-title {
@@ -42,7 +35,7 @@
 
 .game-board > div {
   background-color: #000 !important;
-  border: 3px solid #00ff00 !important;
+  border: 3px solid #8500fa !important;
   box-shadow: inset 0 0 10px rgba(0, 255, 0, 0.3), 0 0 15px rgba(0, 255, 0, 0.5);
 }
 
@@ -167,10 +160,6 @@
 @media (max-width: 768px) {
   .tetris-container {
     padding: 10px;
-  }
-
-  .tetris-wrapper {
-    padding: 15px !important;
   }
 
   .tetris-title {

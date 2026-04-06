@@ -18,6 +18,8 @@ import {
 } from './gameUtils';
 import './Tetris.css';
 
+import { Button, Popup } from 'pixel-retroui';
+
 export default function Tetris() {
   const [board, setBoard] = useState(createEmptyBoard());
   const [currentPiece, setCurrentPiece] = useState({
@@ -256,63 +258,13 @@ export default function Tetris() {
     );
   };
 
-  const renderNextPiece = () => {
-    const nextShapeData = SHAPES[nextPiece.shape];
-    const nextGrid = Array(4)
-      .fill(null)
-      .map(() => Array(4).fill(null));
-
-    for (let row = 0; row < nextShapeData.length; row++) {
-      for (let col = 0; col < nextShapeData[row].length; col++) {
-        if (nextShapeData[row][col] === 1) {
-          nextGrid[row][col] = nextPiece.shape;
-        }
-      }
-    }
-
-    return nextGrid.map((row, rowIdx) =>
-      row.map((cell, colIdx) => (
-        <div
-          key={`next-${rowIdx}-${colIdx}`}
-          style={{
-            width: 20,
-            height: 20,
-            backgroundColor: cell ? COLORS[cell] : '#eee',
-            border: '1px solid #ccc',
-            boxSizing: 'border-box',
-          }}
-        />
-      ))
-    );
-  };
-
   return (
     <div className="tetris-container">
-      <Card className="tetris-wrapper p-6">
-        <h1 className="tetris-title">TETRIS</h1>
-
         <div className="tetris-content">
           <div className="game-board">
             <div style={gridStyle}>{renderBoard()}</div>
           </div>
-
-          <div className="game-info">
-            <Card className="info-card p-4">
-              <div className="info-section">
-                <h3>SCORE</h3>
-                <p className="score-value">{score}</p>
-              </div>
-
-              {gameOver && (
-                <div className="game-over-message">
-                  <p> GAME OVER! </p>
-                </div>
-              )}
-
-            </Card>
-          </div>
         </div>
-      </Card>
     </div>
   );
 }
