@@ -15,7 +15,11 @@ import {
   clearLines,
   calculateScore,
 } from './gameUtils';
+import GameOverModal from './components/GameOverModal';
+import { fetchTopScores, submitScore, isQualifyingScore } from './lib/scores';
 import './Tetris.css';
+
+const TOP_N = 10;
 
 export default function Tetris() {
   const [board, setBoard] = useState(createEmptyBoard());
@@ -26,8 +30,15 @@ export default function Tetris() {
   const [nextPiece, setNextPiece] = useState(getRandomShape());
   const [score, setScore] = useState(0);
   const [gameOver, setGameOver] = useState(false);
+  const [topScores, setTopScores] = useState(null);
+  const [loadError, setLoadError] = useState(null);
+  const [modalPhase, setModalPhase] = useState('entering');
+  const [newEntryId, setNewEntryId] = useState(null);
   const gameLoopRef = useRef(null);
   const dropSpeedRef = useRef(500);
+
+  const isHighScore =
+    topScores !== null && isQualifyingScore(score, topScores, TOP_N);
 
   const shapeData = SHAPES[currentPiece.shape];
   
@@ -49,6 +60,22 @@ export default function Tetris() {
         clearInterval(gameLoopRef.current);
       }
     }
+  }, [gameOver]);
+
+  // Fetch top scores once when the game ends.
+  useEffect(() => {
+    if (!gameOver) return;
+    let cancelled = false;
+    fetchTopScores(TOP_N)
+      .then((scores) => {
+        if (!cancelled) setTopScores(scores);
+      })
+      .catch((err) => {
+        if (!cancelled) setLoadError(err);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [gameOver]);
 
   // MAIN GAME LOOP
@@ -103,13 +130,46 @@ export default function Tetris() {
     };
   }, [currentPiece.y, currentPiece.shape, currentPiece.x, currentShapeData, nextPiece, gameOver]);
 
+  const handleReset = () => {
+    setBoard(createEmptyBoard());
+    setCurrentPiece({ ...getRandomShape(), rotation: 0 });
+    setNextPiece(getRandomShape());
+    setScore(0);
+    setGameOver(false);
+    setTopScores(null);
+    setLoadError(null);
+    setModalPhase('entering');
+    setNewEntryId(null);
+    dropSpeedRef.current = 500;
+  };
+
+  const handleSubmitScore = async (name) => {
+    setModalPhase('submitting');
+    try {
+      const docRef = await submitScore({ name, score });
+      const fresh = await fetchTopScores(TOP_N);
+      setTopScores(fresh);
+      setNewEntryId(docRef.id);
+      setModalPhase('submitted');
+    } catch (err) {
+      setLoadError(err);
+      setModalPhase('entering');
+    }
+  };
+
   // Handle keyboard input
   useEffect(() => {
     const handleKeyPress = (e) => {
       if (gameOver) {
         if (e.key === ' ') {
           e.preventDefault();
-          handleReset();
+          // If the player has a qualifying high score that hasn't been
+          // submitted yet, swallow the spacebar so a reflex press doesn't
+          // wipe out their entry. They must submit (or skip) first.
+          const blockReset = isHighScore && modalPhase !== 'submitted';
+          if (!blockReset) {
+            handleReset();
+          }
         }
         return;
       }
@@ -188,29 +248,7 @@ export default function Tetris() {
     return () => {
       window.removeEventListener('keydown', handleKeyPress);
     };
-  }, [board, currentShapeData, currentPiece, gameOver, nextPiece]);
-
-  const handleRotate = () => {
-    if (gameOver) return;
-    
-    setCurrentPiece((prev) => {
-      const newRotation = (prev.rotation + 1) % 4;
-      const rotatedShape = getRotatedShape(SHAPES[prev.shape], newRotation);
-      if (!isColliding(board, prev.shape, rotatedShape, prev.x, prev.y)) {
-        return { ...prev, rotation: newRotation };
-      }
-      return prev;
-    });
-  };
-
-  const handleReset = () => {
-    setBoard(createEmptyBoard());
-    setCurrentPiece({ ...getRandomShape(), rotation: 0 });
-    setNextPiece(getRandomShape());
-    setScore(0);
-    setGameOver(false);
-    dropSpeedRef.current = 500;
-  };
+  }, [board, currentShapeData, currentPiece, gameOver, nextPiece, isHighScore, modalPhase]);
 
   const gridStyle = {
     display: 'grid',
@@ -263,6 +301,17 @@ export default function Tetris() {
           </div>
         </div>
         <p className='tetris-title'> {score} </p>
+        {gameOver && (
+          <GameOverModal
+            score={score}
+            topScores={topScores}
+            loadError={loadError}
+            isHighScore={isHighScore}
+            modalPhase={modalPhase}
+            newEntryId={newEntryId}
+            onSubmit={handleSubmitScore}
+          />
+        )}
     </div>
   );
 }

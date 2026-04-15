@@ -156,6 +156,113 @@
   font-family: 'Courier New', monospace;
 }
 
+/* Game over modal */
+.game-over-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.75);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 100;
+  padding: 20px;
+}
+
+.game-over-card {
+  min-width: 320px;
+  max-width: 420px;
+  width: 100%;
+  padding: 20px 24px;
+  text-align: center;
+}
+
+.game-over-title {
+  margin: 0 0 8px 0;
+  font-size: 1.8em;
+  letter-spacing: 3px;
+  color: #ff3366;
+  text-shadow: 0 0 8px rgba(255, 51, 102, 0.6);
+}
+
+.game-over-score {
+  margin: 0 0 16px 0;
+  font-size: 1.4em;
+  color: #ffff00;
+  text-shadow: 0 0 6px rgba(255, 255, 0, 0.5);
+}
+
+.leaderboard-title {
+  margin: 8px 0;
+  font-size: 1.1em;
+  letter-spacing: 2px;
+  color: #00ff00;
+}
+
+.leaderboard-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 16px 0;
+  font-family: 'Courier New', monospace;
+  text-align: left;
+}
+
+.leaderboard-row {
+  display: grid;
+  grid-template-columns: 32px 1fr auto;
+  gap: 8px;
+  padding: 4px 8px;
+  font-size: 1em;
+  color: #00ff00;
+}
+
+.leaderboard-row-new {
+  background-color: rgba(255, 255, 0, 0.18);
+  color: #ffff00;
+  text-shadow: 0 0 6px rgba(255, 255, 0, 0.6);
+}
+
+.leaderboard-rank {
+  text-align: right;
+}
+
+.leaderboard-name {
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.leaderboard-score {
+  text-align: right;
+}
+
+.leaderboard-loading,
+.leaderboard-empty,
+.leaderboard-error {
+  margin: 12px 0;
+  font-style: italic;
+  opacity: 0.8;
+}
+
+.leaderboard-error {
+  color: #ff6666;
+}
+
+.game-over-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: stretch;
+  margin-top: 12px;
+}
+
+.game-over-status {
+  margin: 12px 0 0 0;
+  font-size: 0.95em;
+  letter-spacing: 1px;
+  color: #00ff00;
+}
+
 /* Responsive design */
 @media (max-width: 768px) {
   .tetris-container {
