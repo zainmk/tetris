@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from 'react';
 import {
   BOARD_WIDTH,
   BOARD_HEIGHT,
-  BLOCK_SIZE,
   SHAPES,
   COLORS,
 } from './gameConstants';
@@ -15,7 +14,9 @@ import {
   clearLines,
   calculateScore,
 } from './gameUtils';
+import useBlockSize from './hooks/useBlockSize';
 import GameOverModal from './components/GameOverModal';
+import TouchControls from './components/TouchControls';
 import { fetchTopScores, submitScore, isQualifyingScore } from './lib/scores';
 import './Tetris.css';
 
@@ -36,6 +37,7 @@ export default function Tetris() {
   const [newEntryId, setNewEntryId] = useState(null);
   const gameLoopRef = useRef(null);
   const dropSpeedRef = useRef(500);
+  const blockSize = useBlockSize();
 
   const isHighScore =
     topScores !== null && isQualifyingScore(score, topScores, TOP_N);
@@ -157,15 +159,74 @@ export default function Tetris() {
     }
   };
 
+  // Action functions (shared by keyboard + touch controls)
+  const moveLeft = () => {
+    setCurrentPiece((prev) => {
+      if (!isColliding(board, prev.shape, currentShapeData, prev.x - 1, prev.y)) {
+        return { ...prev, x: prev.x - 1 };
+      }
+      return prev;
+    });
+  };
+
+  const moveRight = () => {
+    setCurrentPiece((prev) => {
+      if (!isColliding(board, prev.shape, currentShapeData, prev.x + 1, prev.y)) {
+        return { ...prev, x: prev.x + 1 };
+      }
+      return prev;
+    });
+  };
+
+  const rotate = () => {
+    setCurrentPiece((prev) => {
+      const newRotation = (prev.rotation + 1) % 4;
+      const rotatedShape = getRotatedShape(SHAPES[prev.shape], newRotation);
+      if (!isColliding(board, prev.shape, rotatedShape, prev.x, prev.y)) {
+        return { ...prev, rotation: newRotation };
+      }
+      return prev;
+    });
+  };
+
+  const softDrop = () => {
+    setCurrentPiece((prev) => {
+      if (!isColliding(board, prev.shape, currentShapeData, prev.x, prev.y + 1)) {
+        return { ...prev, y: prev.y + 1 };
+      }
+      return prev;
+    });
+  };
+
+  const hardDrop = () => {
+    setBoard((prevBoard) => {
+      let newY = currentPiece.y;
+      while (!isColliding(prevBoard, currentPiece.shape, currentShapeData, currentPiece.x, newY + 1)) {
+        newY++;
+      }
+      let newBoard = placePiece(prevBoard, currentPiece.shape, currentShapeData, currentPiece.x, newY);
+      const { board: clearedBoard, clearedLines } = clearLines(newBoard);
+      newBoard = clearedBoard;
+      if (clearedLines > 0) {
+        setScore((prev) => prev + calculateScore(clearedLines));
+      }
+      const newPiece = { ...nextPiece, rotation: 0 };
+      setNextPiece(getRandomShape());
+      if (isColliding(newBoard, newPiece.shape, SHAPES[newPiece.shape], newPiece.x, newPiece.y)) {
+        setGameOver(true);
+        return newBoard;
+      }
+      setCurrentPiece(newPiece);
+      return newBoard;
+    });
+  };
+
   // Handle keyboard input
   useEffect(() => {
     const handleKeyPress = (e) => {
       if (gameOver) {
         if (e.key === ' ') {
           e.preventDefault();
-          // If the player has a qualifying high score that hasn't been
-          // submitted yet, swallow the spacebar so a reflex press doesn't
-          // wipe out their entry. They must submit (or skip) first.
           const blockReset = isHighScore && modalPhase !== 'submitted';
           if (!blockReset) {
             handleReset();
@@ -174,73 +235,11 @@ export default function Tetris() {
         return;
       }
 
-      if (e.key === 'ArrowLeft') {
-        e.preventDefault();
-        setCurrentPiece((prev) => {
-          if (!isColliding(board, prev.shape, currentShapeData, prev.x - 1, prev.y)) {
-            return { ...prev, x: prev.x - 1 };
-          }
-          return prev;
-        });
-      } else if (e.key === 'ArrowRight') {
-        e.preventDefault();
-        setCurrentPiece((prev) => {
-          if (!isColliding(board, prev.shape, currentShapeData, prev.x + 1, prev.y)) {
-            return { ...prev, x: prev.x + 1 };
-          }
-          return prev;
-        });
-      } else if (e.key === 'ArrowUp') {
-        e.preventDefault();
-        setCurrentPiece((prev) => {
-          const newRotation = (prev.rotation + 1) % 4;
-          const rotatedShape = getRotatedShape(SHAPES[prev.shape], newRotation);
-          if (!isColliding(board, prev.shape, rotatedShape, prev.x, prev.y)) {
-            return { ...prev, rotation: newRotation };
-          }
-          return prev;
-        });
-      } else if (e.key === 'ArrowDown') {
-        e.preventDefault();
-        setCurrentPiece((prev) => {
-          if (!isColliding(board, prev.shape, currentShapeData, prev.x, prev.y + 1)) {
-            return { ...prev, y: prev.y + 1 };
-          }
-          return prev;
-        });
-      } else if (e.key === ' ') {
-        e.preventDefault();
-        setBoard((prevBoard) => {
-          let newY = currentPiece.y;
-          // Find the lowest position the piece can go
-          while (!isColliding(prevBoard, currentPiece.shape, currentShapeData, currentPiece.x, newY + 1)) {
-            newY++;
-          }
-          // Place the piece at its final position
-          let newBoard = placePiece(prevBoard, currentPiece.shape, currentShapeData, currentPiece.x, newY);
-          
-          // Clear lines
-          const { board: clearedBoard, clearedLines } = clearLines(newBoard);
-          newBoard = clearedBoard;
-          
-          if (clearedLines > 0) {
-            setScore((prev) => prev + calculateScore(clearedLines));
-          }
-          
-          // Spawn next piece
-          const newPiece = { ...nextPiece, rotation: 0 };
-          setNextPiece(getRandomShape());
-          
-          // Check game over
-          if (isColliding(newBoard, newPiece.shape, SHAPES[newPiece.shape], newPiece.x, newPiece.y)) {
-            setGameOver(true);
-            return newBoard;
-          }
-          
-          setCurrentPiece(newPiece);
-          return newBoard;
-        });
-      }
+      if (e.key === 'ArrowLeft') { e.preventDefault(); moveLeft(); }
+      else if (e.key === 'ArrowRight') { e.preventDefault(); moveRight(); }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); rotate(); }
+      else if (e.key === 'ArrowDown') { e.preventDefault(); softDrop(); }
+      else if (e.key === ' ') { e.preventDefault(); hardDrop(); }
     };
 
     window.addEventListener('keydown', handleKeyPress);
@@ -252,7 +251,7 @@ export default function Tetris() {
 
   const gridStyle = {
     display: 'grid',
-    gridTemplateColumns: `repeat(${BOARD_WIDTH}, ${BLOCK_SIZE}px)`,
+    gridTemplateColumns: `repeat(${BOARD_WIDTH}, ${blockSize}px)`,
     gap: '1px',
     backgroundColor: '#000',
     padding: '5px',
@@ -282,8 +281,8 @@ export default function Tetris() {
           key={`${rowIdx}-${colIdx}`}
           className="block"
           style={{
-            width: BLOCK_SIZE,
-            height: BLOCK_SIZE,
+            width: blockSize,
+            height: blockSize,
             backgroundColor: cell ? COLORS[cell] : '#111',
             border: '1px solid #333',
             boxSizing: 'border-box',
@@ -301,6 +300,14 @@ export default function Tetris() {
           </div>
         </div>
         <p className='tetris-title'> {score} </p>
+        <TouchControls
+          onLeft={moveLeft}
+          onRight={moveRight}
+          onRotate={rotate}
+          onSoftDrop={softDrop}
+          onHardDrop={hardDrop}
+          disabled={gameOver}
+        />
         {gameOver && (
           <GameOverModal
             score={score}
