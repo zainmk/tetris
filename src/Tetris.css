@@ -302,10 +302,9 @@
 }
 
 .touch-btn-drop {
-  width: 100%;
+  width: calc(72px + 90px + 72px + 24px);
   height: 48px;
-  font-size: 0.95em;
-  letter-spacing: 3px;
+  font-size: 1.4em;
 }
 
 /* Hide touch controls on desktop (mouse pointer) */

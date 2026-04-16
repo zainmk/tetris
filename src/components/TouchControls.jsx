@@ -116,7 +116,7 @@ function DropBar({ onSoftDrop, onHardDrop, disabled }) {
       onClick={(e) => { e.preventDefault(); if (!disabled) onSoftDrop(); }}
       disabled={disabled}
     >
-      DROP
+      &#9660;
     </button>
   );
 }
