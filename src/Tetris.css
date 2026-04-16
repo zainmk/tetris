@@ -14,6 +14,7 @@
 .tetris-title {
   text-align: center;
   color: #00ff00;
+  font-family: 'Minecraft', sans-serif;
   font-size: 2.5em;
   margin: 0;
   text-shadow: 0 0 10px rgba(0, 255, 0, 0.8);

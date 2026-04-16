@@ -89,9 +89,6 @@ export default function GameOverModal({
     if (modalPhase === 'submitting') {
       return <p className="game-over-status">SAVING...</p>;
     }
-    if (modalPhase === 'submitted') {
-      return <p className="game-over-status">SAVED — PRESS SPACE TO PLAY AGAIN</p>;
-    }
   };
 
   return (
