@@ -92,7 +92,6 @@ export default function GameOverModal({
     if (modalPhase === 'submitted') {
       return <p className="game-over-status">SAVED — PRESS SPACE TO PLAY AGAIN</p>;
     }
-    return <p className="game-over-status">PRESS SPACE TO PLAY AGAIN</p>;
   };
 
   return (
@@ -105,8 +104,7 @@ export default function GameOverModal({
         shadowColor="#00ff00"
       >
         <h2 className="game-over-title">GAME OVER</h2>
-        <p className="game-over-score">SCORE: {score}</p>
-        <h3 className="leaderboard-title">TOP 10</h3>
+        <p className="game-over-score"> {score} </p>
         {renderLeaderboard()}
         {renderFooter()}
       </Card>
